@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>시험 결과 보고</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            width: 50%;
+            margin: 0 auto;
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 10px;
+        }
+        .result-textarea {
+            width: 105%; /* 결과 텍스트 영역 전체 너비 */
+            height: 500px;
+            margin-bottom: 10px;
+        }
+        .input-group {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .input-group > div {
+            margin-right: 10px;
+        }
+        textarea#template {
+            width: 105%; /* 양식 입력 텍스트 영역 전체 너비 */
+            height: 250px;
+        }
+        .button-group {
+            display: flex;
+            justify-content: center; /* 수평 정렬을 위해 중앙 정렬 */
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .button-group > button {
+            margin: 0 5px; /* 버튼들 사이의 간격 조정 */
+            padding: 10px 20px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>시험 결과 보고</h1>
+        <div id="template-container" class="form-group">
+            <label for="template">양식 입력:</label>
+            <textarea id="template" placeholder=
+"[수학 주간TEST 성적 알림]
+
+1.학생: {name}
+
+2.단원: {examName}
+
+3.점수: {score}/{maxScore} ({passed})
+
+*재시험자는 토요일 11시 20분까지 등원
+재시험 미등원 시 다음주 월-금 3:30~5:00 까지 등원하여 자습 및 보강 실시 
+
+*재시험 미통과시 개인 보강 진행
+
+*합격 기준: {maxScore}문항 중 {passCriteria}개 이상
+
+--------------------------------------------------------------">
+            </textarea>
+        </div>
+        <div id="exam-name-container" class="form-group">
+            <label for="exam-name">시험지:</label>
+            <input type="text" id="exam-name" placeholder="시험지명을 입력하세요">
+        </div>
+        <div id="options-container" class="input-group">
+            <div class="form-group">
+                <label for="max-score">문항 수:</label>
+                <input type="text" id="max-score" min="1" max="100" value="15">
+            </div>
+            <div class="form-group">
+                <label for="pass-criteria">통과(이상):</label>
+                <input type="text" id="pass-criteria" value="12">
+            </div>
+        </div>
+        <div id="form-container" class="input-group">
+            <div class="form-group">
+                <label for="name">이름:</label>
+                <input type="text" id="name" style="ime-mode: active;" placeholder="이름을 입력하세요" onkeydown="checkTab(event)">
+            </div>
+            <div class="form-group">
+                <label for="score">점수:</label>
+                <input type="text" id="score" style="ime-mode: active;" placeholder="점수를 입력하세요" onkeydown="checkEnter(event)">
+            </div>
+        </div>
+        
+        <div class="button-group">
+            <button onclick="copyResults()">복사</button>
+            <button onclick="resetResults()">리셋</button>
+        </div>
+        <textarea id="results" class="result-textarea"></textarea>
+    </div>
+
+    <script>
+        function setDefaultExamName() {
+            const examNameInput = document.getElementById('exam-name');
+            const date = new Date();
+            const day = date.getDay();
+            const month = date.getMonth() + 1;
+            const dayOfMonth = date.getDate();
+            
+            let examName = `${month}/${dayOfMonth} `;
+            examName += day === 5 ? '주간테스트' : '일일테스트';
+            
+            examNameInput.value = examName;
+        }
+
+        function checkTab(event) {
+            if (event.key === 'Tab') {
+                event.preventDefault(); // 기본 Tab 동작 방지
+                document.getElementById('score').focus();
+            }
+        }
+
+        function checkEnter(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                submitForm();
+            }
+        }
+
+        function submitForm() {
+            const template = document.getElementById('template').value;
+            const name = document.getElementById('name').value;
+            const examName = document.getElementById('exam-name').value;
+            const score = document.getElementById('score').value;
+            const maxScore = document.getElementById('max-score').value || 15;
+            const passCriteria = document.getElementById('pass-criteria').value || '0.8';
+            const passed = score >= passCriteria ? '통과' : '미통과';
+
+            if (name && score && template) {
+                const resultTextarea = document.getElementById('results');
+                const resultText = template
+                    .replace('{name}', name)
+                    .replace('{examName}', examName)
+                    .replace('{score}', score)
+                    .replace('{maxScore}', maxScore)
+                    .replace('{passed}', passed)
+                    .replace('{maxScore}', maxScore)
+                    .replace('{passCriteria}', passCriteria);
+                
+                // 결과 추가
+                resultTextarea.value += `${resultText}\n\n`;
+
+                // 스크롤을 항상 아래로 이동
+                resultTextarea.scrollTop = resultTextarea.scrollHeight;
+
+                // 입력란 초기화 및 포커스 이동 (양식 입력란은 초기화하지 않음)
+                document.getElementById('name').value = '';
+                document.getElementById('score').value = '';
+                document.getElementById('name').focus();
+            } else {
+                alert('모든 필드를 입력해 주세요.');
+            }
+        }
+
+        function copyResults() {
+            const resultTextarea = document.getElementById('results');
+            resultTextarea.select();
+            document.execCommand('copy');
+            alert('복사되었습니다.');
+        }
+
+        function resetResults() {
+            const resultTextarea = document.getElementById('results');
+            resultTextarea.value = '';
+        }
+
+        // 페이지 로드 시 시험지명 설정 및 이름 입력란에 포커스
+        document.addEventListener('DOMContentLoaded', (event) => {
+            setDefaultExamName();
+            document.getElementById('name').focus();
+        });
+
+        // 초기 양식 입력 Placeholder 설정
+        document.addEventListener('DOMContentLoaded', (event) => {
+            const templateTextarea = document.getElementById('template');
+            const placeholderText = templateTextarea.placeholder;
+            const examNameInput = document.getElementById('exam-name');
+            
+            templateTextarea.value = placeholderText;
+            examNameInput.focus();
+        });
+    </script>
+</body>
+</html>
