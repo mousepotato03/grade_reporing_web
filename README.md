@@ -26,10 +26,15 @@
 #### 양식
 - tag 사용법
   학생: {name}
+  
   시험명: {examName}
+  
   점수: {score} ({passed})
+  
   총점: {maxScore}
+  
   통과 점수(이상): {passCriteria}
+  
   통과 여부: {passed}
   
 #### 시험지명
